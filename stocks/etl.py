@@ -128,7 +128,7 @@ class Stocks:
         eager - возвращает готовый датафрейм или генератор с ленивым вычислением для поочерёдного перебора.
         preproc_func - функция, предобрабатывающая каждый датафрейм. Должна возвращать датафрейм.
         """
-        generator = (self.get_chart_df(Stocks.format_time(date))
+        generator = (preproc_func(self.get_chart_df(Stocks.format_time(date)))
                      for date
                      in pd.date_range(end=last_date if last_date else datetime.date.today().isoformat(), periods=n))
         return pd.concat(list(generator)) if eager else generator
