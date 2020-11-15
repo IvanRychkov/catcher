@@ -132,3 +132,6 @@ class Stocks:
                      for date
                      in pd.date_range(end=last_date if last_date else datetime.date.today().isoformat(), periods=n))
         return pd.concat(list(generator)) if eager else generator
+
+
+__all__ = ['Stocks']
