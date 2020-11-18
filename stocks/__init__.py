@@ -1,3 +1,3 @@
-__all__ = ['etl']
+__all__ = ['etl', 'timeseries']
 
 from . import *
