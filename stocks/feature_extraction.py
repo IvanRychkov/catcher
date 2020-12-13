@@ -48,3 +48,6 @@ def lookahead_agg(column, aggfunc, window_size=None, pbar='notebook', **agg_kws)
             column[i:min(i + window_size, column.shape[0])], **agg_kws)
             for i in range_func(column.shape[0])),
         index=column.index)
+
+
+__all__ = ['lookahead_agg', 'profit', 'profit_chance']
