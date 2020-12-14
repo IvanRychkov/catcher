@@ -45,7 +45,7 @@ def lookahead_agg(column, aggfunc, window_size=60, drop_leakage=False, pbar='not
     # Возвращаем агрегированные значения в скользящем окне
     result = pd.Series(
         data=(aggfunc(
-            column[i:i + window_size], **agg_kws)
+            column[i:(i + window_size) if window_size > 0 else None], **agg_kws)
             for i in range_func(length)),
         index=column.index)
     # Если отбрасываем утечку данных, то удаляем window_size последних индексов
