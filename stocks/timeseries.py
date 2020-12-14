@@ -21,9 +21,9 @@ def split_day(data, split_hour=13):
     return data.loc[data.index.hour < split_hour], data.loc[data.index.hour >= split_hour]
 
 
-def remaining_periods(data):
+def future_periods(data):
     """Обратный отсчёт. Показывает, сколько осталось времени до конца торгов."""
-    return pd.Series(data=range(data.shape[0], 0, -1), index=data.index) + 1
+    return pd.Series(data=range(data.shape[0] - 1, -1, -1), index=data.index)
 
 
-__all__ = ['last_day', 'remaining_periods', 'split_day', 'working_hours']
+__all__ = ['last_day', 'future_periods', 'split_day', 'working_hours']

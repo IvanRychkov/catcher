@@ -3,7 +3,7 @@ from tqdm import trange
 from tqdm.notebook import tnrange
 
 
-def profit(price_bought, current_price, broker_commission=0.03, as_bool=False):
+def profit(price_bought, current_price, broker_commission=0.003, as_bool=False):
     """Считает прибыль от продажи акции по текущей цене.
     as_bool возвращает наличие/отсутствие прибыли.
     Налоги не учитываются."""
