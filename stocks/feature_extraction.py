@@ -23,11 +23,11 @@ def profit_chance(window, single_day=False, **profit_kws):
     # Либо всё дальнейшее время
     else:
         future = window[1:]
-    return (profit(window[now], future, as_bool=True, **profit_kws).sum() / future.shape[0]) if future.shape[
-                                                                                                    0] > 0 else 0
+    return (profit(window[now], future, as_bool=True, **profit_kws).sum() / future.shape[0])\
+        if future.shape[0] > 0 else 0
 
 
-def lookahead_agg(column, aggfunc, window_size=None, pbar='notebook', **agg_kws):
+def lookahead_agg(column, aggfunc, window_size=60, drop_leakage=False, pbar='notebook', **agg_kws):
     """Выполняет агрегирование столбца с забеганием вперёд.
     pbar = {'notebook', None/False}."""
 
@@ -40,14 +40,16 @@ def lookahead_agg(column, aggfunc, window_size=None, pbar='notebook', **agg_kws)
             range_func = trange
     else:
         range_func = range
-    if window_size is None:
-        window_size = column.shape[0]
-    # Возвращаем агрегированные значения в сужающемся окне
-    return pd.Series(
+
+    length = column.shape[0]
+    # Возвращаем агрегированные значения в скользящем окне
+    result = pd.Series(
         data=(aggfunc(
-            column[i:min(i + window_size, column.shape[0])], **agg_kws)
-            for i in range_func(column.shape[0])),
+            column[i:i + window_size], **agg_kws)
+            for i in range_func(length)),
         index=column.index)
+    # Если отбрасываем утечку данных, то удаляем window_size последних индексов
+    return result[:-window_size] if drop_leakage else result
 
 
 __all__ = ['lookahead_agg', 'profit', 'profit_chance']
