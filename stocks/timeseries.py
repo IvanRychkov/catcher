@@ -27,7 +27,7 @@ def future_periods(data):
     return pd.Series(data=range(data.shape[0] - 1, -1, -1), index=data.index)
 
 
-def datetime_append(date=None, hours=15, minutes=59):
+def datetime_append(date=None, hours=15, minutes=59) -> pd.Timestamp:
     """Возвращает заданное время дня. По умолчанию берёт сегодня."""
     day = datetime.date.today() if date is None else datetime.date.fromisoformat(date)
     return pd.to_datetime(datetime.datetime(year=day.year,
