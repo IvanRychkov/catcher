@@ -37,4 +37,9 @@ def datetime_append(date=None, hours=15, minutes=59):
                                             minute=minutes))
 
 
-__all__ = ['datetime_append', 'last_day', 'future_periods', 'split_day', 'working_hours']
+def minutes_diff(start: pd.Timestamp, end: pd.Timestamp):
+    """Возвращает количество минут между датами."""
+    return (end - start).seconds // 60
+
+
+__all__ = ['datetime_append', 'last_day', 'future_periods', 'minutes_diff', 'split_day', 'working_hours']
