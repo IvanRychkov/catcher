@@ -1,6 +1,8 @@
 import pandas as pd
 from tqdm import trange
 from tqdm.notebook import tnrange
+from .timeseries import last_day, future_periods
+from functools import partial
 
 
 def profit(price_bought, current_price, broker_commission=0.003, as_bool=False):
@@ -50,6 +52,27 @@ def lookahead_agg(column, aggfunc, window_size=60, drop_leakage=False, pbar='not
         index=column.index)
     # Если отбрасываем утечку данных, то удаляем window_size последних индексов
     return result[:-window_size] if drop_leakage else result
+
+
+make_probs = partial(lookahead_agg, aggfunc=profit_chance, broker_commission=0.0005)
+
+
+def generate_features(data, future=True, rolling_periods=60):
+    """Пайплайн для генерации признаков."""
+    df = data.copy()
+    # Отсчёт
+    if future:
+        df['future'] = future_periods(data)
+    # Среднее
+    if rolling_periods > 0:
+        df[f'rolling_avg_{rolling_periods}'] = data.average.rolling(rolling_periods, min_periods=1).mean()
+    return df
+
+
+def make_train_data(data, n_last=0):
+    """Возвращает X и y учебной выборки."""
+    actual_data = last_day(data)
+    return generate_features(actual_data).iloc[-n_last:], make_probs(actual_data.average, pbar=False).iloc[-n_last:]
 
 
 __all__ = ['lookahead_agg', 'profit', 'profit_chance']

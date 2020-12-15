@@ -1,4 +1,5 @@
 import pandas as pd
+import datetime
 
 
 def last_day(data):
@@ -26,4 +27,14 @@ def future_periods(data):
     return pd.Series(data=range(data.shape[0] - 1, -1, -1), index=data.index)
 
 
-__all__ = ['last_day', 'future_periods', 'split_day', 'working_hours']
+def datetime_append(date=None, hours=15, minutes=59):
+    """Возвращает заданное время дня. По умолчанию берёт сегодня."""
+    day = datetime.date.today() if date is None else datetime.date.fromisoformat(date)
+    return pd.to_datetime(datetime.datetime(year=day.year,
+                                            month=day.month,
+                                            day=day.day,
+                                            hour=hours,
+                                            minute=minutes))
+
+
+__all__ = ['datetime_append', 'last_day', 'future_periods', 'split_day', 'working_hours']

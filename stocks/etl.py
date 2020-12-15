@@ -1,6 +1,7 @@
 import pandas as pd
 import datetime
 import requests
+from toads.utils import snake_case
 
 
 class Stocks:
@@ -134,4 +135,19 @@ class Stocks:
         return pd.concat(list(generator)) if eager else generator
 
 
-__all__ = ['Stocks']
+def preproc_pipeline(df: pd.DataFrame):
+    """Функция предобработки для поминутных данных."""
+    # Выбросим столбцы, в которых есть слово 'market'
+    df.drop([col for col in df.columns if 'market' in col], axis=1, inplace=True)
+
+    # Переименуем столбцы
+    df.columns = df.columns.map(snake_case)
+
+    return df.interpolate().fillna(0)
+
+
+def load_data(ticker='aapl', preproc_func=lambda x: x):
+    return Stocks(ticker).get_n_last_dates(3, preproc_func=preproc_func, eager=True)
+
+
+__all__ = ['Stocks', 'preproc_pipeline', 'load_data']
