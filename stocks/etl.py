@@ -12,7 +12,7 @@ class Stocks:
     def __init__(self, symbol=default_symbol, token: str = None):
         """Создаёт контекст для работы с акцией."""
         if not token:
-            print('Using sandbox token.')
+            # print('Using sandbox token.')
             self.token = 'Tpk_ef2b6bae433d4597a222690ed9fb967c'
         else:
             self.token = token
