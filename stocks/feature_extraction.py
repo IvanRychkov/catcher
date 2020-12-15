@@ -69,10 +69,12 @@ def generate_features(data, future=True, rolling_periods=60):
     return df
 
 
-def make_train_data(data, n_last=0):
+def make_train_data(data, n_last=0, lookahead=60):
     """Возвращает X и y учебной выборки."""
     actual_data = last_day(data)
-    return generate_features(actual_data).iloc[-n_last:], make_probs(actual_data.average, pbar=False).iloc[-n_last:]
+    return generate_features(actual_data).iloc[-n_last:], make_probs(actual_data.average,
+                                                                     window_size=lookahead,
+                                                                     pbar=False).iloc[-n_last:]
 
 
 __all__ = ['lookahead_agg', 'profit', 'profit_chance']
