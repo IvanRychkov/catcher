@@ -4,7 +4,7 @@ import requests
 from toads.utils import snake_case
 
 
-class Stocks:
+class IEXAPI:
     """Класс для работы с API iexcloud."""
     valid_times = {'max', '5y', '2y', '1y', 'ytd', '6m', '3m', '1m', '1mm', '5d', '5dm', 'date', 'dynamic'}
     default_symbol = 'aapl'
@@ -61,8 +61,8 @@ class Stocks:
         if not time_range:
             time_range = 'dynamic'
         # Дата или диапазон
-        if time_range not in Stocks.valid_times:
-            params['exactDate'] = ''.join(Stocks.format_time(time_range))
+        if time_range not in IEXAPI.valid_times:
+            params['exactDate'] = ''.join(IEXAPI.format_time(time_range))
         else:
             params['range'] = time_range
 
@@ -80,7 +80,7 @@ class Stocks:
         """Делает http-запрос к iexcloud и формирует из него датафрейм.
         Подробная документация в методе Stocks.get_chart()."""
         # Делаем запрос
-        return Stocks.make_df(self.get_chart(time_range=time_range, **kwargs).json())
+        return IEXAPI.make_df(self.get_chart(time_range=time_range, **kwargs).json())
 
     @staticmethod
     def make_df(json_request):
@@ -129,7 +129,7 @@ class Stocks:
         eager - возвращает готовый датафрейм или генератор с ленивым вычислением для поочерёдного перебора.
         preproc_func - функция, предобрабатывающая каждый датафрейм. Должна возвращать датафрейм.
         """
-        generator = (preproc_func(self.get_chart_df(Stocks.format_time(date)))
+        generator = (preproc_func(self.get_chart_df(IEXAPI.format_time(date)))
                      for date
                      in pd.date_range(end=last_date if last_date else datetime.date.today().isoformat(), periods=n))
         return pd.concat(list(generator)) if eager else generator
@@ -147,7 +147,7 @@ def preproc_pipeline(df: pd.DataFrame):
 
 
 def load_data(ticker='aapl', preproc_func=lambda x: x):
-    return Stocks(ticker).get_n_last_dates(3, preproc_func=preproc_func, eager=True)
+    return IEXAPI(ticker).get_n_last_dates(3, preproc_func=preproc_func, eager=True)
 
 
-__all__ = ['Stocks', 'preproc_pipeline', 'load_data']
+__all__ = ['IEXAPI', 'preproc_pipeline', 'load_data']
