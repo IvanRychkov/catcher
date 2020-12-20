@@ -96,7 +96,4 @@ def make_train_data(data, n_last=0, lookahead=60):
                                                                      pbar=False).iloc[-n_last:]
 
 
-
-
-
 __all__ = ['lookahead_agg', 'profit', 'profit_chance']

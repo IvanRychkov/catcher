@@ -14,7 +14,7 @@ def preproc_pipeline(df):
     if df.shape[0] == 0:
         return df
     return df.assign(
-        datetime=pd.to_datetime(df.time) + pd.Timedelta(hours=3)
+        datetime=pd.to_datetime(df.time).dt.tz_localize(None) + pd.Timedelta(hours=3)
     ).drop(['interval', 'figi', 'time'],
            axis=1).set_index('datetime').rename(columns={'o': 'open',
                                                          'c': 'close',
