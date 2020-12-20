@@ -13,8 +13,14 @@ def preproc_pipeline(df):
     """Пайплайн предобработки цен на акции."""
     if df.shape[0] == 0:
         return df
-    return df.assign(datetime=pd.to_datetime(df.time) + pd.Timedelta(hours=3)).drop(['interval', 'figi', 'time'],
-                                                                                    axis=1).set_index('datetime')
+    return df.assign(
+        datetime=pd.to_datetime(df.time) + pd.Timedelta(hours=3)
+    ).drop(['interval', 'figi', 'time'],
+           axis=1).set_index('datetime').rename(columns={'o': 'open',
+                                                         'c': 'close',
+                                                         'h': 'high',
+                                                         'l': 'low',
+                                                         'v': 'volume'})
 
 
 def make_datetime(time: str = None):
