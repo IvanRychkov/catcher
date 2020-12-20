@@ -86,21 +86,21 @@ class IEXAPI:
     def make_df(json_request):
         """Формирует датафрейм из JSON."""
 
-        def intraday(json_request):
+        def intraday():
             """Формирует датафрейм с поминутными данными."""
             data = pd.DataFrame(json_request)
             data.loc[:, 'datetime'] = pd.to_datetime(data.date + ' ' + data.minute)
             data = data.drop(['minute', 'date', 'label'], axis=1).set_index('datetime')
             return data
 
-        def daily(json_request):
+        def daily():
             """Формирует датафрейм с подневными данными."""
             data = pd.DataFrame(json_request)
             data.loc[:, 'datetime'] = pd.to_datetime(data.date)
             data = data.drop(['minute', 'date', 'label'], axis=1, errors='ignore').set_index('datetime')
             return data
 
-        def dynamic(json_request):
+        def dynamic():
             return pd.DataFrame(json_request['data'])
 
         # Для пустых запросов - пустой датафрейм
@@ -117,7 +117,7 @@ class IEXAPI:
         # Пробуем динамическое время
         try:
             if 'range' in json_request.keys():
-                return dynamic(json_request)
+                return dynamic()
         except:
             pass
 
