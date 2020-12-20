@@ -5,12 +5,31 @@ from .timeseries import last_day, future_periods
 from functools import partial
 
 
+def lookahead_window(column, aggfunc, window_size=60, shift=0, **agg_kws):
+    """Выполняет агрегирование столбца с забеганием вперёд."""
+    # Переворачиваем выборку, агрегируем и разворачиваем обратно
+    return column[::-1].shift(-shift).rolling(window_size, min_periods=1).agg(aggfunc, **agg_kws)[::-1]
+
+
 def profit(price_bought, current_price, broker_commission=0.003, as_bool=False):
     """Считает прибыль от продажи акции по текущей цене.
     as_bool возвращает наличие/отсутствие прибыли.
     Налоги не учитываются."""
     result = (current_price - price_bought - (current_price + price_bought) * broker_commission)
     return result > 0 if as_bool else result
+
+
+def profit_chance_lookahead(window, **profit_kws):
+    """Возвращает вероятность прибыли в окне. Совместима с lookahead_window.
+    single_day - ограничивает окно окончанием торгового дня."""
+    assert isinstance(window.index, pd.DatetimeIndex), 'Not a time series.'
+    # Сейчас 1 элемент
+    now = window.index[-1]
+
+    # Будущее - все предыдущие строки
+    future = window[:-1]
+    return (profit(window[now], future, as_bool=True, **profit_kws).sum() / future.shape[0]) \
+        if future.shape[0] > 0 else 0
 
 
 def profit_chance(window, single_day=False, **profit_kws):
@@ -75,6 +94,9 @@ def make_train_data(data, n_last=0, lookahead=60):
     return generate_features(actual_data).iloc[-n_last:], make_probs(actual_data.average,
                                                                      window_size=lookahead,
                                                                      pbar=False).iloc[-n_last:]
+
+
+
 
 
 __all__ = ['lookahead_agg', 'profit', 'profit_chance']
