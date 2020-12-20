@@ -51,9 +51,9 @@ class TinkoffAPI:
         check_response(r)
         print(f'Account "{self.account_id}" successfully removed.')
 
-    def get_stock_prices(self, date=None, ticker=None, interval='1min', preprocess=lambda x: x):
+    def get_stock_prices(self, date=None, ticker=None, interval='1min', preprocess=preproc_pipeline):
         """Возвращает датафрейм с ценами в заданном интервале времени.
-        preprocess - принимает датафрейм."""
+        preprocess - принимает и возвращает датафрейм."""
         assert interval in TinkoffAPI.time_intervals, 'Wrong time interval.'
 
         # Форматируем время
