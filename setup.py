@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="stocks-ivanrychkov",
-    version="0.0.5",
+    version="0.0.6",
     author="Ivan Rychkov",
     author_email="rychyrych@yandex.ru",
     description="ETL library for downloading stocks data.",
