@@ -4,11 +4,11 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="stocks-ivanrychkov",
+    name="catcher-ivanrychkov",
     version="0.0.6",
     author="Ivan Rychkov",
     author_email="rychyrych@yandex.ru",
-    description="ETL library for downloading stocks data.",
+    description="HFT library.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ivanrychkov/stocks",
