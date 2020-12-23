@@ -1,3 +1,3 @@
-## Ivan Rychkov - Stocks
+## Ivan Rychkov - Catcher
 
-Algotrading. Half-done yet with high potential.
+High-frequency trading. Half-done yet with high potential.
