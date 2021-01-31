@@ -26,7 +26,7 @@ def preproc_pipeline(df):
 def make_datetime(time: str = None):
     """Форматирует время для Тинькофф"""
     if not time:
-        time = datetime.datetime.now()
+        time = datetime.datetime.now().date()
     else:
         time = datetime.datetime.fromisoformat(time)
     return time

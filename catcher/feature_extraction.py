@@ -31,7 +31,8 @@ def profit_chance_lookahead(window, **profit_kws):
 
 def buy_recommendation(price_column, lookahead=120):
     """Генерирует рекомендацию к покупке."""
-    return lookahead_window(price_column, profit_chance_lookahead, window_size=lookahead, broker_commission=0.0005)
+    return lookahead_window(price_column, profit_chance_lookahead,
+                            window_size=lookahead, broker_commission=0.0005).rename('buy')
 
 
 def generate_features(data, price_column, future=True, rolling_periods=60):
