@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="catcher-ivanrychkov",
-    version="0.0.7",
+    version="0.0.7.1",
     author="Ivan Rychkov",
     author_email="rychyrych@yandex.ru",
     description="HFT library.",
