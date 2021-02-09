@@ -43,7 +43,7 @@ class TinkoffAPI:
     Instrument = namedtuple('Instrument', 'figi ticker isin minPriceIncrement lot currency name type')
 
     # Таблица временных интервалов и их границ
-    time_intervals = pd.DataFrame(
+    TIME_INTERVALS = pd.DataFrame(
         index=['1min', '2min', '3min', '5min', '10min', '15min', '30min', 'hour', 'day', 'week', 'month'],
         data={
             'max_length': map(pd.Timedelta, ['1d', '1d', '1d', '1d', '1d', '1d', '1d', '7d', '365d', '104w', '3650d']),
@@ -80,15 +80,23 @@ class TinkoffAPI:
         Raises:
             AssertionError: when time interval is invalid.
         '''
-        assert interval in TinkoffAPI.time_intervals.index, f'Wrong time interval "{interval}". Accepted values are {TinkoffAPI.time_intervals.index.to_list()}.'
+        assert interval in TinkoffAPI.TIME_INTERVALS.index, f'Wrong time interval "{interval}". Accepted values are {TinkoffAPI.TIME_INTERVALS.index}.'
 
     def get_stock_prices(self, date=None, periods=None, ticker=None, interval='1min', preprocess=preproc_pipeline):
         """Возвращает датафрейм с ценами в заданном интервале времени.
-        preprocess - принимает и возвращает датафрейм."""
+
+        Args:
+            date (str, optional): end date to load stocks data up to.
+            periods (int, optional): number of most recent periods available from selected date back.
+            ticker (str, optional):  ticker to load data on.
+            interval (str, optional): time window to aggregate stocks data. Available intervals are contained in TinkoffAPI.TIME_INTERVALS table.
+            preprocess (func) - function that preprocesses data into desired form."""
         TinkoffAPI.check_time_interval(interval)
 
         if not date:
             date = make_datetime()
+        else:
+            date = make_datetime(date) + datetime.timedelta(days=1)
 
         # Форматируем время
         end_date = strftime(date)
@@ -96,8 +104,8 @@ class TinkoffAPI:
         # Вычитаем periods интервалов, либо максимальный интервал - 1 строка, если periods == None
         start_date = strftime(
             date -
-            (TinkoffAPI.time_intervals.at[interval, 'timedelta'] * periods if periods
-             else TinkoffAPI.time_intervals.at[interval, 'max_length'])
+            (TinkoffAPI.TIME_INTERVALS.at[interval, 'timedelta'] * periods if periods
+             else TinkoffAPI.TIME_INTERVALS.at[interval, 'max_length'])
         )
 
         #         print('from {} to {}'.format(start_date, end_date))
