@@ -1,6 +1,7 @@
 import pandas as pd
 import datetime
 import requests
+from collections import namedtuple
 
 
 def check_response(r):
@@ -14,7 +15,7 @@ def preproc_pipeline(df):
     if df.shape[0] == 0:
         return df
     return df.assign(
-        datetime=pd.to_datetime(df.time).dt.tz_localize(None) + pd.Timedelta(hours=3)
+        datetime=pd.to_datetime(df.time).dt.tz_localize(None) + pd.Timedelta('3h')
     ).drop(['interval', 'figi', 'time'],
            axis=1).set_index('datetime').rename(columns={'o': 'open',
                                                          'c': 'close',
@@ -26,7 +27,7 @@ def preproc_pipeline(df):
 def make_datetime(time: str = None):
     """Форматирует время для Тинькофф"""
     if not time:
-        time = datetime.datetime.now().date()
+        time = datetime.datetime.now()
     else:
         time = datetime.datetime.fromisoformat(time)
     return time
@@ -39,7 +40,16 @@ def strftime(time):
 class TinkoffAPI:
     """Класс для работы с API Тинькофф Инвестиций."""
     default_ticker = 'aapl'
-    time_intervals = '1min', '2min', '3min', '5min', '10min', '15min', '30min', 'hour', 'day', 'week', 'month'
+    Instrument = namedtuple('Instrument', 'figi ticker isin minPriceIncrement lot currency name type')
+
+    # Таблица временных интервалов и их границ
+    time_intervals = pd.DataFrame(
+        index=['1min', '2min', '3min', '5min', '10min', '15min', '30min', 'hour', 'day', 'week', 'month'],
+        data={
+            'max_length': map(pd.Timedelta, ['1d', '1d', '1d', '1d', '1d', '1d', '1d', '7d', '365d', '104w', '3650d']),
+            'timedelta': map(pd.Timedelta,
+                             ['1min', '2min', '3min', '5min', '10min', '15min', '30min', '1h', '1d', '1w', '30d'])}
+    )
 
     def register_sandbox(self):
         """Регистрирует аккаунт в песочнице."""
@@ -57,31 +67,67 @@ class TinkoffAPI:
         check_response(r)
         print(f'Account "{self.account_id}" successfully removed.')
 
-    def get_stock_prices(self, date=None, ticker=None, interval='1min', preprocess=preproc_pipeline):
+    @staticmethod
+    def check_time_interval(interval):
+        '''Checks whether time interval is valid.
+
+        Args:
+            interval (str): value that represents time interval.
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: when time interval is invalid.
+        '''
+        assert interval in TinkoffAPI.time_intervals.index, f'Wrong time interval "{interval}". Accepted values are {TinkoffAPI.time_intervals.index.to_list()}.'
+
+    def get_stock_prices(self, date=None, periods=None, ticker=None, interval='1min', preprocess=preproc_pipeline):
         """Возвращает датафрейм с ценами в заданном интервале времени.
         preprocess - принимает и возвращает датафрейм."""
-        assert interval in TinkoffAPI.time_intervals, 'Wrong time interval.'
+        TinkoffAPI.check_time_interval(interval)
+
+        if not date:
+            date = make_datetime()
 
         # Форматируем время
-        date = make_datetime(date)
-        start_date = strftime(date)
-        end_date = strftime(date + datetime.timedelta(days=1))
+        end_date = strftime(date)
+
+        # Вычитаем periods интервалов, либо максимальный интервал - 1 строка, если periods == None
+        start_date = strftime(
+            date -
+            (TinkoffAPI.time_intervals.at[interval, 'timedelta'] * periods if periods
+             else TinkoffAPI.time_intervals.at[interval, 'max_length'])
+        )
+
+        #         print('from {} to {}'.format(start_date, end_date))
 
         # Делаем запрос
         r = requests.get('https://api-invest.tinkoff.ru/openapi/sandbox/market/candles',
-                         params={'figi': self.get_figi_by_ticker(ticker=ticker),
+                         params={'figi': self.get_figi_by_ticker(ticker=ticker) if ticker else self.instrument.figi,
                                  'from': start_date,
                                  'to': end_date,
                                  'interval': interval},
                          headers=self.header)
         return preprocess(pd.DataFrame(check_response(r)['payload']['candles']))
 
+    def get_instrument_by_ticker(self, ticker=None):
+        """Получает инструмент по тикеру.
+
+        Args:
+            ticker (str): Ticker to get information about.
+
+        Returns:
+            Instrument: namedtuple object containing info about market instrument.
+        """
+        r = requests.get('https://api-invest.tinkoff.ru/openapi/sandbox/market/search/by-ticker',
+                         params={'ticker': ticker if ticker else self.instrument.ticker},
+                         headers=self.header)
+        return TinkoffAPI.Instrument(**check_response(r)['payload']['instruments'][0])
+
     def get_figi_by_ticker(self, ticker=None):
         """Получает FIGI инструмента."""
-        r = requests.get('https://api-invest.tinkoff.ru/openapi/sandbox/market/search/by-ticker',
-                         params={'ticker': ticker if ticker else self.ticker},
-                         headers=self.header)
-        return check_response(r)['payload']['instruments'][0]['figi']
+        return self.get_instrument_by_ticker(ticker=ticker).figi
 
     def __init__(self, ticker=default_ticker, token: str = None):
         """Создаёт контекст для работы с акцией."""
@@ -91,12 +137,13 @@ class TinkoffAPI:
         else:
             self.token = token
 
-        self.ticker = ticker
         self.header = {'Authorization': f'Bearer {self.token}'}
         self.account_id = None
+        self.instrument = self.get_instrument_by_ticker(ticker)
+        print('Selected instrument: {name}.'.format(name=self.instrument.name))
 
     def __str__(self):
-        return f'Tinkoff API context for {self.ticker.upper()} stocks'
+        return f'Tinkoff API context for {self.instrument.ticker}'
 
     __repr__ = __str__
 
