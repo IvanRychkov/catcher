@@ -8,10 +8,10 @@ setuptools.setup(
     version="0.0.7.2",
     author="Ivan Rychkov",
     author_email="rychyrych@yandex.ru",
-    description="HFT library.",
+    description="Library with trading instruments.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/ivanrychkov/stocks",
+    url="https://github.com/ivanrychkov/catcher",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
