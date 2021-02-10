@@ -8,12 +8,19 @@ def lookahead_window(column, aggfunc, window_size=60, shift=0, **agg_kws):
     return column[::-1].shift(-shift).rolling(window_size, min_periods=1).agg(aggfunc, **agg_kws)[::-1]
 
 
-def profit(price_bought, current_price, broker_commission=0.003, as_bool=False):
+def profit(buy_price, sell_price, broker_commission=0.003, threshold=0, as_bool=False):
     """Считает прибыль от продажи акции по текущей цене.
-    as_bool возвращает наличие/отсутствие прибыли.
-    Налоги не учитываются."""
-    result = (current_price - price_bought - (current_price + price_bought) * broker_commission)
-    return result > 0 if as_bool else result
+    threshold (float): The smallest value to be considered as profit.
+    Налоги не учитываются.
+
+    Returns:
+        bool: if as_bool, returns the fact of profit with respect to threshold.
+        float: the profit size.
+    """
+    assert threshold >= 0, 'Negative threshold will lead to money loss. Change it for at least zero value.'
+
+    result = (sell_price - buy_price - (sell_price + buy_price) * broker_commission)
+    return result >= threshold if as_bool else result
 
 
 def profit_chance_lookahead(window, **profit_kws):
