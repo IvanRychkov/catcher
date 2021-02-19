@@ -33,12 +33,11 @@ def profit(buy_price: float,
     return result >= threshold if as_bool else result
 
 
-def min_price_for_profit(buy_price, threshold: float = 0, broker_commission=0.003) -> float:
+def min_price_for_profit(buy_price, broker_commission=0.003) -> float:
     """Calculates minimum price for getting profit from current buying price.
 
     Args:
         buy_price (float): the price we bought instrument for.
-        threshold (float): minimum profit to be considered as such.
         broker_commission (float): service commission to be used in profit calculation.
 
     Returns:
@@ -46,7 +45,7 @@ def min_price_for_profit(buy_price, threshold: float = 0, broker_commission=0.00
     """
     return np.round(root(lambda sell: profit(buy_price=buy_price,
                                              sell_price=sell,
-                                             threshold=threshold,
+                                             threshold=0,
                                              broker_commission=broker_commission),
                          x0=buy_price)['x'][0],
                     decimals=2)

@@ -1,5 +1,11 @@
 import pandas as pd
 import datetime
+from statsmodels.tsa.stattools import adfuller
+
+
+def check_stationary(time_series) -> bool:
+    """Checks whether time series is stationary using Dickey-Fuller test."""
+    return adfuller(time_series)[1] < 0.05
 
 
 def last_day(data):
@@ -42,4 +48,6 @@ def minutes_diff(start: pd.Timestamp, end: pd.Timestamp):
     return (end - start).seconds // 60
 
 
-__all__ = ['datetime_append', 'last_day', 'future_periods', 'minutes_diff', 'split_day', 'working_hours']
+__all__ = ['check_stationary', 'datetime_append', 'last_day',
+           'future_periods', 'minutes_diff', 'split_day',
+           'working_hours']
