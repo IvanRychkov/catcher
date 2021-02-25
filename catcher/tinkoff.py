@@ -39,7 +39,7 @@ def strftime(time):
 
 class TinkoffAPI:
     """Класс для работы с API Тинькофф Инвестиций."""
-    default_ticker = 'aapl'
+    default_ticker = 'tcsg'
     Instrument = namedtuple('Instrument', 'figi ticker isin minPriceIncrement lot currency name type')
 
     # Таблица временных интервалов и их границ
@@ -82,42 +82,54 @@ class TinkoffAPI:
         '''
         assert interval in TinkoffAPI.TIME_INTERVALS.index, f'Wrong time interval "{interval}". Accepted values are {TinkoffAPI.TIME_INTERVALS.index}.'
 
-    def get_stock_prices(self, date=None, periods=None, ticker=None, interval='1min', preprocess=preproc_pipeline):
+    def get_stock_prices(self, date=None, periods=None, batches: int = 1, ticker=None, interval='1min',
+                         preprocess=preproc_pipeline):
         """Возвращает датафрейм с ценами в заданном интервале времени.
 
         Args:
             date (str, optional): end date to load stocks data up to.
             periods (int, optional): number of most recent periods available from selected date back.
+            batches (int, optional): number of full consequent batches of data downloaded
             ticker (str, optional):  ticker to load data on.
             interval (str, optional): time window to aggregate stocks data. Available intervals are contained in TinkoffAPI.TIME_INTERVALS table.
             preprocess (func) - function that preprocesses data into desired form."""
+        # Проверяем валидность интервала
         TinkoffAPI.check_time_interval(interval)
 
-        if not date:
-            date = make_datetime()
-        else:
-            date = make_datetime(date) + datetime.timedelta(days=1)
+        data = []
 
-        # Форматируем время
-        end_date = strftime(date)
+        # Дельта во времени, если есть
+        batch_length = (TinkoffAPI.TIME_INTERVALS.at[interval, 'timedelta'] * periods if periods
+                        else TinkoffAPI.TIME_INTERVALS.at[interval, 'max_length'])
 
-        # Вычитаем periods интервалов, либо максимальный интервал - 1 строка, если periods == None
-        start_date = strftime(
-            date -
-            (TinkoffAPI.TIME_INTERVALS.at[interval, 'timedelta'] * periods if periods
-             else TinkoffAPI.TIME_INTERVALS.at[interval, 'max_length'])
-        )
+        # Батчи идут задом наперёд, чтобы скачивать данные в хронологическом порядке
+        for batch_n in range(batches, 0, -1):
+            # Инициализируем время в datetime
+            if not date:
+                dt = make_datetime()
+            else:
+                dt = make_datetime(date) + datetime.timedelta(days=1)
 
-        #         print('from {} to {}'.format(start_date, end_date))
+            # Время начала раньше времени конца на 1 батч
+            start_date = strftime(dt - batch_length * (batch_n))
 
-        # Делаем запрос
-        r = requests.get('https://api-invest.tinkoff.ru/openapi/sandbox/market/candles',
-                         params={'figi': self.get_figi_by_ticker(ticker=ticker) if ticker else self.instrument.figi,
-                                 'from': start_date,
-                                 'to': end_date,
-                                 'interval': interval},
-                         headers=self.header)
-        return preprocess(pd.DataFrame(check_response(r)['payload']['candles']))
+            # С каждым батчем время вычитается на 1 batch_length
+            end_date = strftime(dt - batch_length * (batch_n - 1))
+
+            #             print('from {} to {}'.format(start_date, end_date))
+
+            # Делаем запрос
+            r = requests.get('https://api-invest.tinkoff.ru/openapi/sandbox/market/candles',
+                             params={'figi': self.get_figi_by_ticker(ticker=ticker) if ticker else self.instrument.figi,
+                                     'from': start_date,
+                                     'to': end_date,
+                                     'interval': interval},
+                             headers=self.header)
+            # Пополняем список очередным батчем
+            data.append(
+                preprocess(pd.DataFrame(check_response(r)['payload']['candles']))
+            )
+        return pd.concat(data)
 
     def get_instrument_by_ticker(self, ticker=None):
         """Получает инструмент по тикеру.
