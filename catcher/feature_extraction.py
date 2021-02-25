@@ -29,7 +29,7 @@ def profit(buy_price: float,
     assert threshold >= 0, 'Negative threshold will lead to money loss. Change it for at least zero value.'
     result = (sell_price - buy_price - (sell_price + buy_price) * broker_commission)
     # Прибыль не ниже порога в процентах
-    return (result - buy_price) / 100 >= threshold if threshold else result
+    return result / buy_price >= threshold / 100 if threshold else result
 
 
 def min_price_for_profit(buy_price, broker_commission=0.003) -> float:
