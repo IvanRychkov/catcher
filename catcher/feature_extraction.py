@@ -13,24 +13,23 @@ def lookahead_window(column, aggfunc, window_size=60, shift=0, **agg_kws):
 def profit(buy_price: float,
            sell_price: float,
            broker_commission: float = 0.003,
-           threshold=0,
-           as_bool=False) -> [bool, float]:
+           threshold=0) -> {bool, float}:
     """Calculates profit from buying at buy_price and selling at sell_price.
     Doesn't count taxes as they are applied after profit.
     Args:
         buy_price (float): Price bought at.
         sell_price (float): Price to sell at.
         broker_commission (float): Service commission to be used in profit calculation.
-        threshold (float): The smallest value to be considered as profit.
-        as_bool (bool): To represent fact of profit >= threshold as bool.
+        threshold (float): The smallest positive price change in percent to be considered as profit.
 
     Returns:
-        bool: if as_bool, returns the fact of profit with respect to threshold.
+        bool: if threshold is given, returns the fact of profit with respect to threshold.
         float: the profit size.
     """
     assert threshold >= 0, 'Negative threshold will lead to money loss. Change it for at least zero value.'
     result = (sell_price - buy_price - (sell_price + buy_price) * broker_commission)
-    return result >= threshold if as_bool else result
+    # Прибыль не ниже порога в процентах
+    return (result - buy_price) / 100 >= threshold if threshold else result
 
 
 def min_price_for_profit(buy_price, broker_commission=0.003) -> float:
