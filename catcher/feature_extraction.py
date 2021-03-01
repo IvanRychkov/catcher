@@ -144,7 +144,6 @@ def calc_cross_profit(data: pd.DataFrame, price_col='open', policy='lookahead', 
                 {'lookbehind', 'lb'}: calculate profits as if we sold stocks in the past. Tends to be the most optimistic strategy.
                 'full': compare each price in data to each price to calculate profit case. Fairly optimistic.
         broker_commission (float, optional): commission for buying and selling stocks. Included in calculating profits.
-        min_lookahead (int): minimal number of observations to look ahead.
         profit_threshold (float, int): minimum profit to be considered as one.
 
     Returns:
