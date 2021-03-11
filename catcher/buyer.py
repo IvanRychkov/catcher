@@ -18,7 +18,6 @@ class Buyer:
         """The complete pipeline to learn buy recommendation for stocks.
 
         Args:
-            api (TinkoffAPI): API context object to perform operations with.
             verbose (bool): to print or not to print.
 
         Returns:
