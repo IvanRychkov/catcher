@@ -179,8 +179,7 @@ def calc_cross_profit(data: pd.DataFrame, price_col='open', policy='lookahead', 
     cross_profit = profit(buy_price=data_cross[price_col].values,
                           sell_price=data_cross[price_col + '_sell'].values,
                           broker_commission=broker_commission,
-                          threshold=profit_threshold,
-                          as_bool=True).astype('int8')
+                          threshold=profit_threshold).astype('int8')
 
     return data_cross.set_index(  # Вернём на место индекс со временем
         'datetime'
