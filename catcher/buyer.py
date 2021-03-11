@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from functools import wraps
 from lightgbm import LGBMClassifier
 from sklearn.model_selection import cross_validate
@@ -114,12 +115,24 @@ class Buyer:
                 plot_time_series(optional_feature, label=optional_feature.name, color='red', ax=plt.gca().twinx(),
                                  alpha=0.5)
 
+    def draw_feature_importances(self):
+        fi = None
+        if hasattr(self.model, 'coef_'):
+            fi = self.model.coef_[0]
+        elif hasattr(self.model, 'feature_importances_'):
+            fi = self.model.feature_importances_
+        if fi is None:
+            raise ValueError('The model has no feature_importances.')
+
+        with Img(f'Feature importances for {self.api.instrument.name} ({self.api.instrument.ticker})'):
+            sns.barplot(x=self.train_data.columns[:-1], y=fi)
+            plt.axhline(0, color='black')
+
     def __init__(self, api, policy='lookaround', model=LGBMClassifier(), broker_commission=0.003):
         self.api = api
         self.broker_commission = broker_commission
         self.model = model
         self.policy = policy
-        self.train_data = None
 
 
 __all__ = ['Buyer']
