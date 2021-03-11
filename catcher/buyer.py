@@ -122,7 +122,7 @@ class Buyer:
         elif hasattr(self.model, 'feature_importances_'):
             fi = self.model.feature_importances_
         if fi is None:
-            raise ValueError('The model has no feature_importances.')
+            raise ValueError('The model has no feature importances. It is possibly not fit.')
 
         with Img(f'Feature importances for {self.api.instrument.name} ({self.api.instrument.ticker})'):
             sns.barplot(x=self.train_data.columns[:-1], y=fi)
