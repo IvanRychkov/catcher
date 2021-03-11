@@ -6,7 +6,6 @@ from sklearn.model_selection import cross_validate
 from toads.eda import plot_time_series
 from toads.image import Img
 from toads.utils import conditional
-
 from .feature_extraction import min_price_for_profit, make_buy_features, calc_cross_profit
 
 
@@ -18,6 +17,7 @@ class Buyer:
         """The complete pipeline to learn buy recommendation for stocks.
 
         Args:
+            api (TinkoffAPI): API context object to perform operations with.
             verbose (bool): to print or not to print.
 
         Returns:
@@ -57,8 +57,6 @@ class Buyer:
         ).drop(columns=['open', 'close', 'high', 'low', 'volume'])
 
         self.train_data = train_cross
-        # if verbose:
-        #     display(train_cross.tail(3))
 
         # Средняя вероятность прибыли по всей выборке с выбранной политикой
         prt(f'Overall profit chance: {train_cross.profit.mean():.2%}')
@@ -83,7 +81,7 @@ class Buyer:
         # Рисуем контрольный график
         if draw_chart:
             self.draw_chart(prices, current,
-                            title=f'Buy = {pred:.2%} for minimum profit = {profit_threshold} {self.api.instrument.currency}',
+                            title=f'Buy = {pred:.2%} for minimum profit = {profit_threshold}%',
                             optional_feature=self.train_data.groupby('datetime').profit.mean().rename('Profit %'))
 
         return {'ticker': self.api.instrument.ticker,
@@ -99,7 +97,7 @@ class Buyer:
 
     def get_current_price(self):
         """Get current price from api."""
-        self.api.get_stock_prices(interval='1min', periods=5).close[-1]
+        return self.api.get_stock_prices(interval='1min', periods=5).close[-1]
 
     def draw_chart(self, prices, current_price, title=None, optional_feature=None):
         """Draw a chart to visualize green zone and current situation."""
@@ -121,6 +119,7 @@ class Buyer:
         self.broker_commission = broker_commission
         self.model = model
         self.policy = policy
+        self.train_data = None
 
 
 __all__ = ['Buyer']
