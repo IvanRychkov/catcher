@@ -50,25 +50,6 @@ def min_price_for_profit(buy_price, broker_commission=0.003) -> float:
                     decimals=2)
 
 
-def profit_chance_lookahead(window, **profit_kws):
-    """Возвращает вероятность прибыли в окне. Совместима с lookahead_window.
-    single_day - ограничивает окно окончанием торгового дня."""
-    assert isinstance(window.index, pd.DatetimeIndex), 'Not a time series.'
-    # Сейчас 1 элемент
-    now = window.index[-1]
-
-    # Будущее - все предыдущие строки
-    future = window[:-1]
-    return (profit(window[now], future, as_bool=True, **profit_kws).sum() / future.shape[0]) \
-        if future.shape[0] > 0 else 0
-
-
-def buy_recommendation(price_column, lookahead=120):
-    """Генерирует рекомендацию к покупке."""
-    return lookahead_window(price_column, profit_chance_lookahead,
-                            window_size=lookahead, broker_commission=0.0005).rename('buy')
-
-
 def generate_features(data, price_column, future=True, rolling_periods=60):
     """Пайплайн для генерации признаков."""
     df = data[[price_column]]
@@ -190,6 +171,6 @@ def calc_cross_profit(data: pd.DataFrame, price_col='open', policy='lookahead', 
     )
 
 
-__all__ = ['buy_recommendation', 'lookahead_window',
+__all__ = ['lookahead_window',
            'make_buy_features', 'min_price_for_profit',
-           'profit', 'profit_chance_lookahead']
+           'profit']
