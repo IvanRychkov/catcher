@@ -1,3 +1,3 @@
-__all__ = ['buyer', 'feature_extraction', 'timeseries', 'tinkoff', 'logging.py']
+__all__ = ['buyer', 'feature_extraction', 'timeseries', 'tinkoff', 'logging']
 
 from . import *
