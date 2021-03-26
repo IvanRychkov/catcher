@@ -2,7 +2,7 @@ import json
 import pandas as pd
 
 
-def json_append(d: dict, file: str):
+def json_write_results(d: dict, file: str):
     """TODO"""
     try:
         with open(file, 'r+') as f:
@@ -22,4 +22,4 @@ def json_load_results(file):
         return pd.DataFrame(json.load(file)).drop_duplicates()
 
 
-__all__ = ['json_append', 'json_load_results']
+__all__ = ['json_write_results', 'json_load_results']
