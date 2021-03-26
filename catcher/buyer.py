@@ -86,7 +86,7 @@ class Buyer:
                             optional_feature=self.train_data.groupby('datetime').profit.mean().rename('Profit %'))
 
         return {'ticker': self.api.instrument.ticker,
-                'time': X_current.index[0],
+                'time': str(X_current.index[0]),
                 'interval': interval,
                 'periods': periods,
                 'batches': batches,
