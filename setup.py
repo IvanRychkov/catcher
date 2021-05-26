@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="catcher-ivanrychkov",
-    version="0.0.8.3",
+    version="0.0.8.4",
     author="Ivan Rychkov",
     author_email="rychyrych@yandex.ru",
     description="Library with trading instruments.",

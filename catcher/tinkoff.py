@@ -1,7 +1,8 @@
-import pandas as pd
 import datetime
-import requests
 from collections import namedtuple
+
+import pandas as pd
+import requests
 
 
 def check_response(r):
@@ -10,7 +11,7 @@ def check_response(r):
     return r.json()
 
 
-def preproc_pipeline(df):
+def preproc_pipeline(df) -> pd.DataFrame:
     """Пайплайн предобработки цен на акции."""
     if df.shape[0] == 0:
         return df
