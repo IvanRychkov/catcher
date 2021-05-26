@@ -13,7 +13,8 @@ from .feature_extraction import min_price_for_profit, make_buy_features, calc_cr
 class Buyer:
     """Decision mechanism for buying recommendations."""
 
-    def learn_buy_recommendation(self, profit_threshold=0, interval='1min', periods=None, batches=1, verbose=True,
+    def learn_buy_recommendation(self, profit_threshold=0, interval='1min', periods=None, batches=1,
+                                 cross_val=False, verbose=True,
                                  draw_chart=True):
         """The complete pipeline to learn buy recommendation for stocks.
 
@@ -39,7 +40,7 @@ class Buyer:
 
         # Отдельно сохраним последнюю цену
         current = data.close[-1]
-        prt('Current price:', current)
+        prt('Current price:', current, self.api.instrument.currency)
 
         # Сформировать обучающую выборку
         train = make_buy_features(data, 'open', shift_windows=False)
@@ -63,18 +64,22 @@ class Buyer:
         prt(f'Overall profit chance: {train_cross.profit.mean():.2%}')
 
         # Обучение и предсказание рекомендации
-        X, y = train_cross.drop(columns='profit'), train_cross.profit
+        X, y = train_cross.drop(columns='profit').values, train_cross.profit.values
 
         # Кросс-валидация
-        try:
-            rocauc = np.mean(cross_validate(self.model, X, y, scoring='roc_auc', cv=5)['test_score'])
-            prt(f'ROC AUC score: {rocauc:.3f}')
-        except:
+        if cross_val:
+            try:
+                prt('Cross-validating...')
+                rocauc = np.mean(cross_validate(self.model, X, y, scoring='roc_auc', cv=3)['test_score'])
+                prt(f'ROC AUC score: {rocauc:.3f}')
+            except:
+                rocauc = None
+        else:
             rocauc = None
 
         # Предсказание
         try:
-            pred = self.model.fit(X, y).predict_proba(X_current)[0, 1]
+            pred = self.model.fit(X, y).predict_proba(X_current.values)[0, 1]
         except ValueError:
             raise ValueError('profit_threshold argument may be too large.')
         prt(f'Buy recommendation: {pred:.3%}')
