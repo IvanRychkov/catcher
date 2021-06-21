@@ -14,8 +14,7 @@ class Buyer:
     """Decision mechanism for buying recommendations."""
 
     def learn_buy_recommendation(self, profit_threshold=0, interval='1min', periods=None, batches=1,
-                                 cross_val=False, verbose=True,
-                                 draw_chart=True):
+                                 cross_val=False, verbose=True, save_chart=False):
         """The complete pipeline to learn buy recommendation for stocks.
 
         Args:
@@ -85,10 +84,10 @@ class Buyer:
         prt(f'Buy recommendation: {pred:.3%}')
 
         # Рисуем контрольный график
-        if draw_chart:
-            self.draw_chart(prices, current,
-                            title=f'Buy = {pred:.2%} for minimum profit = {profit_threshold}%',
-                            optional_feature=self.train_data.groupby('datetime').profit.mean().rename('Profit %'))
+        self.make_chart(prices, current,
+                        title=f'Buy = {pred:.2%} for minimum profit = {profit_threshold}%',
+                        optional_feature=self.train_data.groupby('datetime').profit.mean().rename('Profit %'),
+                        save=save_chart)
 
         return {'ticker': self.api.instrument.ticker,
                 'time': str(X_current.index[0]),
@@ -105,7 +104,9 @@ class Buyer:
         """Get current price from api."""
         return self.api.get_stock_prices(interval='1min', periods=5).close[-1]
 
-    def draw_chart(self, prices, current_price, title=None, optional_feature=None):
+    def make_chart(self, prices, current_price,
+                   title=None, optional_feature=None,
+                   save=False, show=True):
         """Draw a chart to visualize green zone and current situation."""
         with Img(st=title, legend='f' if optional_feature is not None else 'a'):
             # Зелёная зона - где продажа без убытка
@@ -120,23 +121,10 @@ class Buyer:
                 plot_time_series(optional_feature, label=optional_feature.name, color='red', ax=plt.gca().twinx(),
                                  alpha=0.5)
 
-    def save_chart(self, prices, current_price, title=None, optional_feature=None):
-        """Draw a chart to visualize green zone and current situation."""
-        with Img(st=title,
-                 legend='f' if optional_feature is not None else 'a',
-                 save_only=True, dpi=200, fname='tmp/images/' + self.api.instrument.ticker + '.png'):
-            # Зелёная зона - где продажа без убытка
-            green_min = min_price_for_profit(current_price)
-            plt.axhspan(green_min,
-                        prices.max(), alpha=.2, color='g', label=f'Non-loss zone @ {green_min}+')
-            Img.labels('Datetime', f'Price, {self.api.instrument.currency}')
-            plot_time_series(prices, label=f'{self.api.instrument.name} ({self.api.instrument.ticker})')
-            plt.axhline(current_price, color='orange', ls=':', label=f'Current price = {current_price}')
-
-            if optional_feature is not None:
-                plot_time_series(optional_feature, label=optional_feature.name, color='red', ax=plt.gca().twinx(),
-                                 alpha=0.5)
-
+            if save:
+                plt.savefig(fname=f'./tmp/images/{self.api.instrument.ticker}.png')
+            if not show:
+                return
 
     def draw_feature_importances(self):
         fi = None
