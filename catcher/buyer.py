@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from functools import wraps
-from sklearn.linear_model import LogisticRegression
+from dask_ml.linear_model import LogisticRegression
 from sklearn.model_selection import cross_validate
 from toads.eda import plot_time_series
 from toads.image import Img
@@ -133,7 +133,7 @@ class Buyer:
             sns.barplot(x=self.train_data.columns[:-1], y=fi)
             plt.axhline(0, color='black')
 
-    def __init__(self, api, policy='lookaround', model=LogisticRegression(solver='liblinear'), broker_commission=0.003):
+    def __init__(self, api, policy='lookaround', model=LogisticRegression(solver='admm'), broker_commission=0.003):
         self.api = api
         self.broker_commission = broker_commission
         self.model = model
