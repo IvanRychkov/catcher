@@ -107,7 +107,7 @@ class Buyer:
 
     def draw_chart(self, prices, current_price, title=None, optional_feature=None):
         """Draw a chart to visualize green zone and current situation."""
-        with Img(st=title, legend='f' if optional_feature is not None else 'a', ):
+        with Img(st=title, legend='f' if optional_feature is not None else 'a'):
             # Зелёная зона - где продажа без убытка
             green_min = min_price_for_profit(current_price)
             plt.axhspan(green_min,
@@ -119,6 +119,24 @@ class Buyer:
             if optional_feature is not None:
                 plot_time_series(optional_feature, label=optional_feature.name, color='red', ax=plt.gca().twinx(),
                                  alpha=0.5)
+
+    def save_chart(self, prices, current_price, title=None, optional_feature=None):
+        """Draw a chart to visualize green zone and current situation."""
+        with Img(st=title,
+                 legend='f' if optional_feature is not None else 'a',
+                 save_only=True, dpi=200, fname='tmp/images/' + self.api.instrument.ticker + '.png'):
+            # Зелёная зона - где продажа без убытка
+            green_min = min_price_for_profit(current_price)
+            plt.axhspan(green_min,
+                        prices.max(), alpha=.2, color='g', label=f'Non-loss zone @ {green_min}+')
+            Img.labels('Datetime', f'Price, {self.api.instrument.currency}')
+            plot_time_series(prices, label=f'{self.api.instrument.name} ({self.api.instrument.ticker})')
+            plt.axhline(current_price, color='orange', ls=':', label=f'Current price = {current_price}')
+
+            if optional_feature is not None:
+                plot_time_series(optional_feature, label=optional_feature.name, color='red', ax=plt.gca().twinx(),
+                                 alpha=0.5)
+
 
     def draw_feature_importances(self):
         fi = None
