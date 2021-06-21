@@ -15,7 +15,7 @@ class Buyer:
     """Decision mechanism for buying recommendations."""
 
     def learn_buy_recommendation(self, profit_threshold=0, interval='1min', periods=None, batches=1,
-                                 cross_val=False, verbose=True, save_chart=False):
+                                 cross_val=False, verbose=True, save_chart=False, **save_kws):
         """The complete pipeline to learn buy recommendation for stocks.
 
         Args:
@@ -107,9 +107,10 @@ class Buyer:
 
     def make_chart(self, prices, current_price,
                    title=None, optional_feature=None,
-                   save=False, show=True):
+                   save=False, show=True, **save_kws):
         """Draw a chart to visualize green zone and current situation."""
-        with Img(st=title, legend='f' if optional_feature is not None else 'a'):
+        with Img(st=title, legend='f' if optional_feature is not None else 'a',
+                 save_only=save and not show, save_kws=save_kws):
             # Зелёная зона - где продажа без убытка
             green_min = min_price_for_profit(current_price)
             plt.axhspan(green_min,
@@ -122,12 +123,7 @@ class Buyer:
                 plot_time_series(optional_feature, label=optional_feature.name, color='red', ax=plt.gca().twinx(),
                                  alpha=0.5)
 
-            if save:
-                target_dir = 'tmp/images'
-                if not os.path.isdir(target_dir):
-                    os.makedirs(target_dir)
-                plt.savefig(fname=os.path.join(target_dir, self.api.instrument.ticker.lower() + '.png'),
-                            )
+
 
     def draw_feature_importances(self):
         fi = None
