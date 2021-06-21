@@ -8,6 +8,7 @@ from toads.eda import plot_time_series
 from toads.image import Img
 from toads.utils import conditional
 from .feature_extraction import min_price_for_profit, make_buy_features, calc_cross_profit
+import os
 
 
 class Buyer:
@@ -122,7 +123,10 @@ class Buyer:
                                  alpha=0.5)
 
             if save:
-                plt.savefig(fname=f'./tmp/images/{self.api.instrument.ticker}.png')
+                target_dir = 'tmp/images'
+                if not os.path.isdir(target_dir):
+                    os.mkdir(target_dir)
+                plt.savefig(fname=os.path.join(target_dir, {self.api.instrument.ticker} + '.png'))
             if not show:
                 return
 
