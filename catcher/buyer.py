@@ -126,9 +126,8 @@ class Buyer:
                 target_dir = 'tmp/images'
                 if not os.path.isdir(target_dir):
                     os.makedirs(target_dir)
-                plt.savefig(fname=os.path.join(target_dir, self.api.instrument.ticker + '.png'))
-            if not show:
-                return
+                plt.savefig(fname=os.path.join(target_dir, self.api.instrument.ticker.lower() + '.png'),
+                            )
 
     def draw_feature_importances(self):
         fi = None
