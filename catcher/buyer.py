@@ -8,14 +8,14 @@ from toads.eda import plot_time_series
 from toads.image import Img
 from toads.utils import conditional
 from .feature_extraction import min_price_for_profit, make_buy_features, calc_cross_profit
-import os
 
 
 class Buyer:
     """Decision mechanism for buying recommendations."""
 
-    def learn_buy_recommendation(self, profit_threshold=0, interval='1min', periods=None, batches=1,
-                                 cross_val=False, verbose=True, save_chart=False, **save_kws):
+    def learn_buy_recommendation(self, profit_threshold=0, interval='15min', periods=None, batches=1,
+                                 cross_val=False, verbose=True, no_show=False, save_to='img.png',
+                                 **save_kws):
         """The complete pipeline to learn buy recommendation for stocks.
 
         Args:
@@ -88,7 +88,7 @@ class Buyer:
         self.make_chart(prices, current,
                         title=f'Buy = {pred:.2%} for minimum profit = {profit_threshold}%',
                         optional_feature=self.train_data.groupby('datetime').profit.mean().rename('Profit %'),
-                        save=save_chart)
+                        no_show=no_show, save_to=save_to, save_kws=save_kws)
 
         return {'ticker': self.api.instrument.ticker,
                 'time': str(X_current.index[0]),
@@ -107,10 +107,10 @@ class Buyer:
 
     def make_chart(self, prices, current_price,
                    title=None, optional_feature=None,
-                   save=False, show=True, **save_kws):
+                   no_show=False, save_to='img.png', **save_kws):
         """Draw a chart to visualize green zone and current situation."""
         with Img(st=title, legend='f' if optional_feature is not None else 'a',
-                 save_only=save and not show, save_kws=save_kws):
+                 no_show=no_show) as img:
             # Зелёная зона - где продажа без убытка
             green_min = min_price_for_profit(current_price)
             plt.axhspan(green_min,
@@ -122,8 +122,8 @@ class Buyer:
             if optional_feature is not None:
                 plot_time_series(optional_feature, label=optional_feature.name, color='red', ax=plt.gca().twinx(),
                                  alpha=0.5)
-
-
+            if save_kws:
+                img.savefig(fname=save_to, **save_kws)
 
     def draw_feature_importances(self):
         fi = None
